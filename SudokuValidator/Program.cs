@@ -1,17 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SudokuValidator
 {
     public static class Program
     {
-        // todo: create sudokugrid class with overloaded toString() method to print grid and encapsulate all functionality into validateFile method
-        // sudoku uses (1) 9x9 main grid with (9) 3x3 sub grids
+        // todo: create sudokugrid class with overloaded toString() method to print grid
+        // and encapsulate all functionality into internal validateFile method
+
+        // todo: wire up unit tests to increase code coverage
+
+        // sudoku uses (1) 9x9 main grid with (9) 3x3 sub grids with values 1-9 or '.' for "empty/no value"
+
         const int gridWidth = 9;
         const int gridHeight = 9;
         const int subGridWidth = 3;
         const int subGridHeight = 3;
-        const int sudokuSum = 45;
 
         public static void Main(string[] args)
         {
@@ -32,21 +37,20 @@ namespace SudokuValidator
             }
 
             Console.WriteLine("Validating " + filePath + "...");
-            
+
             validateGrid(loadGrid(filePath));
 
             Console.WriteLine("Press any key to quit...");
             Console.ReadLine();
         }
 
-        private static int[,] loadGrid(string filePath)
+        private static string[,] loadGrid(string filePath)
         {
-            int[,] sudokuGrid = new int[gridHeight, gridWidth];
+            var sudokuGrid = new string[gridHeight, gridWidth];
 
             try
             {
                 var fileInput = File.ReadAllText(filePath);
-
                 var i = 0;
 
                 // load grid
@@ -59,12 +63,7 @@ namespace SudokuValidator
                     var j = 0;
                     foreach (var col in row.Trim().Split(' '))
                     {
-                        //if (String.IsNullOrEmpty(col))
-                        //{
-                        //    continue;
-                        //}
-                        sudokuGrid[i, j] = int.Parse(col.Trim());
-
+                        sudokuGrid[i, j] = col.Trim();
                         j++;
                     }
                     i++;
@@ -81,7 +80,7 @@ namespace SudokuValidator
             return sudokuGrid;
         }
 
-        private static void printGrid(int[,] sudokuGrid)
+        private static void printGrid(string[,] sudokuGrid)
         {
             // Console.WriteLine("Sudoku Grid:");
             for (int i = 0; i < sudokuGrid.GetLength(0); i++)
@@ -95,62 +94,138 @@ namespace SudokuValidator
             }
         }
 
-        private static void validateGrid(int[,] sudokuGrid)
+        private static void validateGrid(string[,] sudokuGrid)
         {
             var isValid = true; // default to truthy
 
             try
             {
-                // verify summation of all columns equals sudoku sum (45)
+                // todo: consolidate as much duplicated iterative code here as possible
+                // and refactor to be more short circuited so its easier
+                // to read, maintain, and isn't nested.
+
+                // validate all columns contain 1-9 with no dupes - move into sub routine
                 for (int i = 0; i < gridWidth; i++)
                 {
-                    var colSum = 0;
+                    var foundNums = new List<string>();
                     for (int j = 0; j < gridHeight; j++)
                     {
-                        colSum += sudokuGrid[i, j];
-                    }
-                    // Console.WriteLine("col " + i + " sum = " + colSum);
-                    if (colSum != sudokuSum)
-                    {
-                        isValid = false;
-                    }
-                }
-
-                // verify summation of all rows equals sudoku sum (45)
-                for (int i = 0; i < gridHeight; i++)
-                {
-                    var rowSum = 0;
-                    for (int j = 0; j < gridWidth; j++)
-                    {
-                        rowSum += sudokuGrid[j, i];
-                    }
-                    // Console.WriteLine("row " + i + " sum = " + rowSum);
-                    if (rowSum != sudokuSum)
-                    {
-                        isValid = false;
-                    }
-                }
-
-                // verify summation of all 3x3 sub grids equals sudoku sum (45)
-                for (int x = 0; x < gridWidth; x += subGridWidth)
-                {
-                    for (int y = 0; y < gridHeight; y += subGridHeight)
-                    {
-                        var subGridSum = 0;
-                        for (int i = x; i < x + subGridHeight; i++)
+                        // Console.WriteLine("col found nums count = " + foundNums.Count);
+                        // do we need to check for numbers < 1 and > 9 or is it assumed they're always 1-9 or "empty"
+                        // if (sudokuGrid[i, j] < 1 || sudokuGrid[i, j] > 9 || foundNums.Contains(sudokuGrid[i, j]))
+                        if (foundNums.Contains(sudokuGrid[i, j]))
                         {
-                            for (int j = y; j < y + subGridWidth; j++)
-                            {
-                                // Console.Write(sudokuGrid[i, j]);
-                                // Console.Write(' ');
-                                subGridSum += sudokuGrid[i, j];
-                            }
-                            // Console.WriteLine("");
-                        }
-                        // Console.WriteLine("sub grid [(" + x + "-" + (x + (subGridWidth - 1)) + "),(" + y + "-" + (y + (subGridHeight - 1)) + ")] sum = " + subGridSum);
-                        if (subGridSum != sudokuSum)
-                        {
+                            // invalid number found
                             isValid = false;
+                            //  Console.WriteLine("breaking col check loop 1");
+                            break;
+                        }
+
+                        // only handle non empty cells ('.') in grid
+                        if (sudokuGrid[i, j] != ".")
+                        {
+                            foundNums.Add(sudokuGrid[i, j]);
+                        }
+                    }
+                    if (!isValid)
+                    {
+                        // Console.WriteLine("breaking col check loop 2");
+                        break;
+                    }
+                }
+
+                if (!isValid)
+                {
+                    Console.WriteLine("failed column validation!");
+                }
+                else
+                {
+                    // only continue if still valid
+                    Console.WriteLine("passed column validation!");
+
+                    // validate all rows contain 1-9 with no dupes - move into sub routine
+                    for (int i = 0; i < gridHeight; i++)
+                    {
+                        var foundNums = new List<string>();
+                        for (int j = 0; j < gridWidth; j++)
+                        {
+                            // Console.WriteLine("row found nums count = " + foundNums.Count);
+                            // do we need to check for numbers < 1 and > 9 or is it assumed they're always 1-9 or "empty"
+                            // if (sudokuGrid[j, i] < 1 || sudokuGrid[j, i] > 9 || foundNums.Contains(sudokuGrid[j, i]))
+                            if (foundNums.Contains(sudokuGrid[j, i]))
+                            {
+                                // invalid number found
+                                isValid = false;
+                                // Console.WriteLine("breaking row check loop 1");
+                                break;
+                            }
+
+                            // only handle non empty cells ('.') in grid
+                            if (sudokuGrid[j, i] != ".")
+                            {
+                                foundNums.Add(sudokuGrid[j, i]);
+                            }
+                        }
+                        if (!isValid)
+                        {
+                            // Console.WriteLine("breaking row check loop 2");
+                            break;
+                        }
+                    }
+
+                    if (!isValid)
+                    {
+                        Console.WriteLine("failed row validation!");
+                    }
+                    else
+                    {
+                        // only continue if still valid
+                        Console.WriteLine("passed row validation!");
+
+                        // validate all 3x3 sub grids contain 1-9 with no dupes
+                        for (int x = 0; x < gridWidth; x += subGridWidth)
+                        {
+                            for (int y = 0; y < gridHeight; y += subGridHeight)
+                            {
+                                var foundNums = new List<string>();
+                                for (int i = x; i < x + subGridHeight; i++)
+                                {
+                                    for (int j = y; j < y + subGridWidth; j++)
+                                    {
+                                        // Console.WriteLine("grid found nums count = " + foundNums.Count);
+                                        // do we need to check for numbers < 1 and > 9 or is it assumed they're always 1-9 or "empty"
+                                        // if (sudokuGrid[i, j] < 1 || sudokuGrid[i, j] > 9 || foundNums.Contains(sudokuGrid[i, j]))
+                                        if (foundNums.Contains(sudokuGrid[i, j]))
+                                        {
+                                            // invalid number found
+                                            isValid = false;
+                                            // Console.WriteLine("breaking grid check loop 1");
+                                            break;
+                                        }
+
+                                        // only handle non empty cells ('.') in grid
+                                        if (sudokuGrid[i, j] != ".")
+                                        {
+                                            foundNums.Add(sudokuGrid[i, j]);
+                                        }
+                                    }
+                                    if (!isValid)
+                                    {
+                                        // Console.WriteLine("breaking grid check loop 2");
+                                        break;
+                                    }
+
+                                }
+                            }
+                        }
+
+                        if (!isValid)
+                        {
+                            Console.WriteLine("failed grid validation!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("passed grid validation!");
                         }
                     }
                 }
