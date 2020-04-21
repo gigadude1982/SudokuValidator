@@ -15,29 +15,25 @@ namespace SudokuValidator
 
         public static void Main(string[] args)
         {
-            // todo: refactor to take file name as input arg - got here
             Console.WriteLine("Sudoku File Validator v1.0\n");
-            Console.WriteLine("Enter absolute path to sudoku input file (ex: C:\\temp\\sudoku.txt) OR press enter to validate sudoku.txt in current directory...");
 
-            var filePath = Console.ReadLine().Trim();
-            if (String.IsNullOrEmpty(filePath))
+            if (args.Length == 0)
             {
-                // default input file to sudoku.txt in executing dir
-                filePath = "sudoku.txt";
+                Console.WriteLine("Please enter sudoku input file name!");
+                return;
             }
 
-            Console.WriteLine("Validating " + filePath + ":");
+            var filePath = args[0];
 
-            if (File.Exists(filePath))
-            {
-                var sudokuGrid = loadGrid(filePath);
-                printGrid(sudokuGrid);
-                validateGrid(sudokuGrid);
-            }
-            else
+            if (!File.Exists(filePath))
             {
                 Console.WriteLine("File not found!");
+                return;
             }
+
+            Console.WriteLine("Validating " + filePath + "...");
+            
+            validateGrid(loadGrid(filePath));
 
             Console.WriteLine("Press any key to quit...");
             Console.ReadLine();
@@ -76,16 +72,17 @@ namespace SudokuValidator
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to import grid!");
+                Console.WriteLine("Failed to load grid!");
                 Console.WriteLine(ex.ToString());
             }
+
+            printGrid(sudokuGrid);
 
             return sudokuGrid;
         }
 
         private static void printGrid(int[,] sudokuGrid)
         {
-            // move to overriden print method in SudokuGrid class
             // Console.WriteLine("Sudoku Grid:");
             for (int i = 0; i < sudokuGrid.GetLength(0); i++)
             {
@@ -102,8 +99,6 @@ namespace SudokuValidator
         {
             var isValid = true; // default to truthy
 
-            // do we need to check for dupes here? - tbd
-
             try
             {
                 // verify summation of all columns equals sudoku sum (45)
@@ -114,7 +109,7 @@ namespace SudokuValidator
                     {
                         colSum += sudokuGrid[i, j];
                     }
-                    Console.WriteLine("col " + i + " sum = " + colSum);
+                    // Console.WriteLine("col " + i + " sum = " + colSum);
                     if (colSum != sudokuSum)
                     {
                         isValid = false;
@@ -129,7 +124,7 @@ namespace SudokuValidator
                     {
                         rowSum += sudokuGrid[j, i];
                     }
-                    Console.WriteLine("row " + i + " sum = " + rowSum);
+                    // Console.WriteLine("row " + i + " sum = " + rowSum);
                     if (rowSum != sudokuSum)
                     {
                         isValid = false;
@@ -146,13 +141,13 @@ namespace SudokuValidator
                         {
                             for (int j = y; j < y + subGridWidth; j++)
                             {
-                                Console.Write(sudokuGrid[i, j]);
-                                Console.Write(' ');
+                                // Console.Write(sudokuGrid[i, j]);
+                                // Console.Write(' ');
                                 subGridSum += sudokuGrid[i, j];
                             }
-                            Console.WriteLine("");
+                            // Console.WriteLine("");
                         }
-                        Console.WriteLine("sub grid [(" + x + "-" + (x + (subGridWidth - 1)) + "),(" + y + "-" + (y + (subGridHeight - 1)) + ")] sum = " + subGridSum);
+                        // Console.WriteLine("sub grid [(" + x + "-" + (x + (subGridWidth - 1)) + "),(" + y + "-" + (y + (subGridHeight - 1)) + ")] sum = " + subGridSum);
                         if (subGridSum != sudokuSum)
                         {
                             isValid = false;

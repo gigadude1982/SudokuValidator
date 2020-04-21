@@ -12,10 +12,26 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="sudoku-invalid1.txt" />
+    <None Remove="sudoku-invalid2.txt" />
+    <None Remove="sudoku-valid1.txt" />
+    <None Remove="sudoku-valid2.txt" />
     <None Remove="sudoku.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="sudoku-invalid1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sudoku-invalid2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sudoku-valid1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="sudoku-valid2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="sudoku.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
